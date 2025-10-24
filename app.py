@@ -1,8 +1,8 @@
 import streamlit as st
-from openai import OpenAI
+import openai  # Classic OpenAI import that works everywhere
 
 # ---------------- Page Setup ----------------
-st.set_page_config(page_title="Question Generator", layout="wide")
+st.set_page_config(page_title="AI Question Generator", layout="wide")
 
 st.title("📚 AI Question & Answer Generator")
 st.markdown("Generate questions and answers based on marks, topics, and Bloom's Taxonomy levels")
@@ -79,8 +79,8 @@ if st.button("🚀 Generate Questions & Answers", use_container_width=True):
         st.error("⚠️ Please enter either topics or syllabus content!")
     else:
         try:
-            # Initialize client
-            client = OpenAI(api_key=api_key)
+            # Set API key
+            openai.api_key = api_key
 
             # Prepare topics
             topics_list = [t.strip() for t in topics.replace('\n', ',').split(',') if t.strip()]
@@ -108,7 +108,7 @@ Answer: [Detailed answer]
 """
 
             with st.spinner("🤖 Generating questions and answers..."):
-                response = client.chat.completions.create(
+                response = openai.ChatCompletion.create(
                     model="gpt-4o",
                     messages=[
                         {"role": "system", "content": "You are an expert educator who creates exam questions and answers based on Bloom's Taxonomy."},
@@ -118,7 +118,7 @@ Answer: [Detailed answer]
                     max_tokens=2500
                 )
 
-                generated_content = response.choices[0].message.content.strip()
+                generated_content = response.choices[0].message["content"].strip()
 
                 # ---------------- Display Results ----------------
                 st.success("✅ Questions and Answers Generated Successfully!")
