@@ -1,5 +1,5 @@
 import streamlit as st
-import openai  # Make sure this is in requirements.txt
+from openai import OpenAI  # ✅ New OpenAI SDK syntax (v1.x)
 
 # ---------------- Page Setup ----------------
 st.set_page_config(page_title="AI Question Generator", layout="wide")
@@ -10,8 +10,8 @@ st.markdown("Generate questions and answers based on marks, topics, and Bloom's 
 with st.sidebar:
     st.header("⚙️ Configuration")
     api_key = st.text_input(
-        "OpenAI API Key", 
-        type="password", 
+        "OpenAI API Key",
+        type="password",
         help="Enter your OpenAI API key"
     )
     st.markdown("---")
@@ -38,7 +38,7 @@ with col1:
 
 with col2:
     bloom_level = st.selectbox(
-        "Bloom's Level", 
+        "Bloom's Level",
         ["Remember", "Understand", "Apply", "Analyze", "Evaluate", "Create"]
     )
     num_questions = st.number_input("Number of Questions", min_value=1, max_value=20, value=5)
@@ -76,7 +76,8 @@ if st.button("🚀 Generate Questions & Answers", use_container_width=True):
         st.error("⚠️ Please enter either topics or syllabus content!")
     else:
         try:
-            openai.api_key = api_key
+            # Initialize OpenAI client
+            client = OpenAI(api_key=api_key)
 
             # Prepare topics string
             topics_list = [t.strip() for t in topics.replace("\n", ",").split(",") if t.strip()]
@@ -96,18 +97,22 @@ Q[number]. [Question text] ({marks} marks)
 Answer: [Detailed answer]
 """
 
+            # Call OpenAI API
             with st.spinner("🤖 Generating questions and answers..."):
-                response = openai.ChatCompletion.create(
+                response = client.chat.completions.create(
                     model="gpt-4o",
                     messages=[
-                        {"role":"system","content":"You are an expert educator who creates high-quality exam questions and answers based on Bloom's Taxonomy."},
-                        {"role":"user","content":prompt}
+                        {
+                            "role": "system",
+                            "content": "You are an expert educator who creates high-quality exam questions and answers based on Bloom's Taxonomy."
+                        },
+                        {"role": "user", "content": prompt}
                     ],
                     temperature=0.7,
                     max_tokens=2500
                 )
 
-                generated_content = response.choices[0].message["content"].strip()
+                generated_content = response.choices[0].message.content.strip()
 
                 # Display results
                 st.success("✅ Questions & Answers Generated Successfully!")
